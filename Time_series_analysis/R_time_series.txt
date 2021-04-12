@@ -1,0 +1,537 @@
+Note: heteroscedastic, with increasing variability in later years
+
+on the console, type:
+chooseCRANmirror()
+to install: right side/install/find packages
+to see available datasets:
+data(package='faraway')
+select dataset:
+data(worldcup, package='faraway')
+mean(worldcup$Time)
+
+data(coagulation, package='faraway')
+plot(coag~diet, data=coagulation)
+summary(coagulation) 
+
+
+#superimposing hist and density
+dataset = c(#insert entries)
+hist(dataset, xlab='x label', main='title', freq=T/F, col='green', breaks=10)
+#breaks can also have a vector, or a method such as 'Sturges', 'FD'
+#freq=F gives the density/probability
+lines(density(dataset), col='red', lwd=5)
+
+#scatterplots
+set.seed(2016)
+Test_1_scores = round(rnorm(50,78,10))
+Test_2_scores = round(rnorm(50,70,14))
+plot(Test_2_scores~Test_1_scores, main='title', xlab='Test 1 scores', ylab='Test 2 scores', col='blue')
+
+
+#linear regression, gives intercept and slope
+help("co2")
+co2.linear.model = lm(co2~time(co2))
+co2.linear.model #return coefficients
+plot(co2)
+abline(co2.linear.model)
+
+co2.residuals = resid(co2.linear.model)
+hist(co2.residuals)
+#assess normality of residuals
+qqnorm(co2.residuals)
+qqline(co2.residuals)
+plot(co2.residuals~time(co2))
+#zoom in
+plot(co2.residuals~time(co2), xlim=c(1960,1963))
+
+
+#Statistical Inference (z, t, chi-sq, F are usual test statistic)
+help(sleep)
+plot(extra~group, data=sleep)
+# hypothesis testing using paired t-test 
+attach(sleep)
+extra.1=extra[group==1]
+extra.2=extra[group==2]
+t.test(extra.1,extra.2,paired=TRUE, alternative = 'two.sided')
+# dmu = mu,drug1 - mu,drug2, H0: dmu=0 (sd is sd of differences)
+# df = N-1 = 10-1, two sided means whether dmu>/<0 is unknown we do dmu!=0
+# confidence interval doesn't include zero 
+# p val = likelihood of seeing data this extreme under H0 = (2*P_t(t_val))
+
+
+# Measuring Linear association with the correlation function
+# cov takes account of the units, cor gives normalized units
+help("trees")
+pairs(trees, pch=21, bg =c("red"))
+cov(trees)
+cor(trees)
+
+# do the same for flu, globetemp, globetempl, star
+require(astsa)
+help(astsa)
+help(jj)
+?ts
+
+
+#covariance - measures linear dependence of 2 random vars
+#acf(time_series, type='covariance')
+#cov()
+purely_rand_process=ts(rnorm(100))
+acf(purely_rand_process, type='covariance') 
+#gives plot of autocovariances, default type is autocorrelation function
+
+
+#random walk: x(t) = x(t-1) + Z(t)
+x=NULL
+x[1]=0
+for(i in 2:1000){x[i]=x[i-1]+rnorm(1)}
+random_walk = ts(x)
+plot(random_walk)
+acf(random_walk)
+# diff = Z(t)
+plot(diff(random_walk))
+acf(diff(random_walk))
+
+
+#MA(2) process:
+k=3
+n = 10000
+# Generate noise
+noise = rnorm(n)
+ma_2 = NULL
+weights= c(0.6,0.2,0.4,1)
+#start from k+1  
+#for (i in 3:10000){
+#  ma_2[i]=noise[i]+0.7*noise[i-1]+0.2*noise[i-2]
+#}
+# moving_average_process=ts(ma_2[3:10000])
+#start from k+1  
+for (i in 1:(n-k)){
+  ma_2[(i+k)]=as.numeric(t(matrix(weights))%*%(matrix(noise[i:(i+k)])))
+}
+moving_average_process=ts(ma_2[(k+1):n])
+#2rows, 1col
+par(mfrow=c(2,1)) 
+plot(moving_average_process)
+acf(moving_average_process)
+
+#simulate ma(q) process given beta_1, beta_2 (beta_0 = 1)
+set.seed=1
+(acf(arima.sim(n=1000, model=list(ma=c(0.5,0.5)))))
+
+#Simulate AR(1)
+set.seed(2016); N=1000; beta=.4;
+z=rnorm(N,0,1); X=NULL;
+X[1] = Z[1];
+for (t in 2:N){X[t] = Z[t]+beta*X[t-1]}
+X.ts = ts(X)
+par(mfrow=c(2,1))
+plot(X.ts)
+X.acf acf(X.ts)
+
+#Simulate AR(2)
+set.seed(2017)
+# set beta1 = .7, beta2 = .2
+beta1=.5; beta2=-.4;
+X.ts <- arima.sim(list(ar=c(beta1,beta2)),n=1000)
+par(mfrow=c(2,1))
+plot(X.ts)
+X.acf=acf(X.ts)
+
+#Simulate AR(2) PACF
+rm(list=ls(all=TRUE)); par(mfrow=c(3,1));
+beta.1 = .6; beta.2 = .2;
+data.ts=arima.sim(n=500, list(ar=c(beta.1,beta.2)))
+plot(data.ts)
+acf(data.ts)
+acf(data.ts, type="partial")
+
+#Simulate AR(3) PACF
+rm(list=ls(all=TRUE)); par(mfrow=c(3,1));
+beta.1 = .9; beta.2 = .6; beta.3 = .3;
+data.ts=arima.sim(n=500, list(ar=c(beta.1,beta.2,beta.3)))
+plot(data.ts)
+acf(data.ts)
+acf(data.ts, type="partial")
+
+#Beveridge dataset PACF
+beveridge = read.table("beveridge.txt", header=TRUE)
+beveridge.ts = ts(beveridge[,2], start=1500)
+plot(beveridge.ts)
+#31 datapoints, 15 up 15 down
+beveridge.ma = filter(beveridge.ts, rep(1/31,31), sides=2)
+lines(beveridge.ma, col='red')
+
+par(mfrow=c(3,1))
+Y=beveridge.ts/beveridge.ma
+plot(Y)
+#some data at beginning and end that has NA for Y
+acf(na.omit(Y))
+acf(na.omit(Y), type='partial')
+#generate coefficients in an AR process
+ar(na.omit(Y), order.max=5)
+#MA(q) has ACF that cuts off after q lags
+#AR(p) has PACF that cuts off after p lags
+
+
+#Example: Bodyfat
+library(isdals)
+data("bodyfat")
+attach(bodyfat)
+pairs(cbind(Fat,Triceps,Thigh,Midarm))
+cor(cbind(Fat,Triceps,Thigh,Midarm))
+
+#Measure cor of Fat and Triceps after controlling for Thigh
+# Predict Fat and Triceps with respect to Thigh
+Fat.hat = predict(lm(Fat~Thigh))
+Triceps.hat = predict(lm(Triceps~Thigh))
+cor((Fat-Fat.hat),(Triceps-Triceps.hat))
+
+# Do the same thing
+library(ppcor)
+pcor(cbind(Fat, Triceps, Thigh)
+
+#If we want to partial out Thigh and Midarm
+Fat.hat = predict(lm(Fat~Thigh+Midarm))
+Triceps.hat = predict(lm(Triceps~Thigh+Midarm))
+cor((Fat-Fat.hat),(Triceps-Triceps.hat))
+
+
+# Modelling AR(2) process on rec data
+source('yule_walker.r')
+phi = yule_walker(rec, p=2)$phi
+var = yule_walker(rec, p=2)$var
+cons = yule_walker(rec, p=2)$cons
+par(mfrow=c(3,1))
+plot(rec)
+acf(rec)
+pacf(rec)
+
+# Modelling AR(4) process on JohnsonJohnson data
+source('yule_walker.r')
+par(mfrow=c(3,1))
+plot(JohnsonJohnson)
+acf(JohnsonJohnson)
+pacf(JohnsonJohnson)
+# Transform into  a stationary dataset
+plot(diff(log(JohnsonJohnson)))
+acf(diff(log(JohnsonJohnson)))
+pacf(diff(log(JohnsonJohnson)))
+phi = yule_walker(diff(log(JohnsonJohnson)), p=4)$phi
+var = yule_walker(diff(log(JohnsonJohnson)), p=4)$var
+cons = yule_walker(diff(log(JohnsonJohnson)), p=4)$cons
+
+#to modify max lag
+pacf(diff.data, main='PACF', lag.max = 36). 
+
+
+#Use AIC to assess model quality
+set.seed(500)
+data = arima.sim( list(order = c(3,0,0), ar =c( 0.6, -0.1, .4)), n = 5000)
+m2 = arima(data, order=c(2,0,0), include.mean=FALSE)
+m3 = arima(data, order=c(3,0,0), include.mean=FALSE)
+m4 = arima(data, order=c(4,0,0), include.mean=FALSE)
+SSE[p] sum(resid(m1)^2)
+
+
+#Simulate ARMA mixed process
+#X[t] = 0.7X[t-1] + Z[t] + 0.2 Z[t-1]
+set.seed(500)
+data = arima.sim(list(order = c(1,0,1), ar=.7, ma=2), n = 1000000)
+par(mfcol=c(3,1))
+plot(data, xlim=c(0,400))
+acf(data)
+acf(data, type="partial")
+
+#Using discoveries dataset
+plot(discoveries)
+stripchart(discoveries, method='stack', offset=.5, at=, pch=19, ylab='Frequency')
+par(mfcl = c(2,1))
+acf(discoveries)
+acf(discoveries, type='partial')
+
+#Use auto.arima from forecast library
+library(forecast)
+data = arima.sim(n=1E4, list(ar=.5, ma=.2))
+auto.arima(data)
+
+# Simulating ARIMA(2,1,1) Process
+phi=c(.7, .2); beta=0.5; sigma=3; m=10000
+set.seed(5)
+Simulated.Arima=arima.sim(n=m,list(order = c(2,1,1), ar = phi, ma=beta))
+plot(Simulated.Arima, ylab=' ',main='Simulated time series from ARIMA(2,1,1) process', col='blue', lwd=2)
+acf(Simulated.Arima)
+Diff.Simulated.Arima=diff(Simulated.Arima)
+plot(Diff.Simulated.Arima)
+acf(Diff.Simulated.Arima)
+pacf(Diff.Simulated.Arima)
+
+library(astsa)
+sarima(Simulated.Arima,2,1,1,0,0,0)
+
+library(forecast)
+auto.arima(Simulated.Arima)
+fit1<-arima(Diff.Simulated.Arima, order=c(4,0,0))
+fit2<-arima(Diff.Simulated.Arima, order=c(2,0,1))
+fit3<-arima(Simulated.Arima, order=c(2,1,1))
+
+# Using Q statistic
+#Test H0: several acf coefficients are zero
+Box.test(data, lag=log(T))
+
+
+#Simulating ARIMA on BJsales dataset
+# Plot time series 'BJsales'
+plot(BJsales)
+plot(diff(BJsales))
+plot(diff(diff(BJsales)))
+pacf(diff(diff(BJsales)))
+acf(diff(diff(BJsales)))
+#try different models and compare AIC
+d=2
+for(p in 1:4){
+  for(q in 1:2){
+        if(p+d+q<=6){
+          model<-arima(x=BJsales, order = c((p-1),d,(q-1)))
+          pval<-Box.test(model$residuals, lag=log(length(model$residuals)))
+          sse<-sum(model$residuals^2)
+          cat(p-1,d,q-1, 'AIC=', model$aic, ' SSE=',sse,' p-VALUE=', pval$p.value,'\n')
+        }
+      }
+}
+#model to ARIMA(0,2,1), check the whiteness of residuals
+model<-arima(BJsales, order=c(0,2,1))
+par(mfrow=c(2,2))
+plot(model$residuals)
+acf(model$residuals)
+pacf(model$residuals)
+qqnorm(model$residuals)
+model
+
+
+#SARIMA modeling on J&J data using astsa package
+#look at time plot
+#transformation: log-return diff(log()); plot
+# we see that s=4
+#differencing: D=1
+data = diff(diff(log(jj)), 4)
+#Ljung-Box test
+Box.test(data, lag=log(length(data)))
+acf(data)
+acf(data, type='partial') 
+#ACF -> q=0,1; Q=0,1
+#PACF -> p=0,1; P=0,1
+#look for SARIMA(p,1,q,P,1,Q)4 for log(jj) for 0<=p,q,P,Q <=1
+#arima(x=log(jj), order=c(p,1,q), seasonal=list(order=c(P,1,Q), period=4))
+d=1
+DD=1
+per=4
+for(p in 1:2){
+  for(q in 1:2){
+    for(i in 1:2){
+      for(j in 1:2){
+        if(p+d+q+i+DD+j<=10){
+          model<-arima(x=log(jj), order = c((p-1),d,(q-1)), seasonal = list(order=c((i-1),DD,(j-1)), period=per))
+          pval<-Box.test(model$residuals, lag=log(length(model$residuals)))
+          sse<-sum(model$residuals^2)
+          cat(p-1,d,q-1,i-1,DD,j-1,per, 'AIC=', model$aic, ' SSE=',sse,' p-VALUE=', pval$p.value,'\n')
+        }
+      }
+    }
+  }
+}
+#we model log(jj) as SARIMA(0,1,1,1,1,0)4
+sarima(log(jj), 0,1,1,1,1,0,4)
+#forecast future values using forecast package
+model<-arima(x=log(jj), order=c(0,1,1), seasonal=list(order=c(1,1,0), period=4))
+plot(forecast(model))
+
+
+#Milk production, download from TSDL
+#from plots, you see a seasonality s=12
+#ACF -> q=0; Q=0,1,2,3
+#PACF -> p=0; P=0,1,2
+milk<-read.csv('monthly-milk-production-pounds-p.csv')
+Milk<-milk$Pounds
+library(astsa)
+sarima(Milk, 0,1,0,0,1,1,12)
+
+library(astsa)
+library(forecast)
+d=NULL
+DD=NULL
+d=1
+DD=1
+per=12
+for(p in 1:1){
+  for(q in 1:1){
+    for(i in 1:3){
+      for(j in 1:4){
+        if(p+d+q+i+DD+j<=10){
+          model<-arima(x=Milk, order = c((p-1),d,(q-1)), seasonal = list(order=c((i-1),DD,(j-1)), period=per))
+          pval<-Box.test(model$residuals, lag=log(length(model$residuals)))
+          sse<-sum(model$residuals^2)
+          cat(p-1,d,q-1,i-1,DD,j-1,per, 'AIC=', model$aic, ' SSE=',sse,' p-VALUE=', pval$p.value,'\n')
+        }
+      }
+    }
+  }
+}
+model<- arima(x=Milk, order = c(0,1,0), seasonal = list(order=c(0,1,1), period=12))
+plot(forecast(model))
+forecast(model)
+
+
+#Monthly souvenir sales, downloaded from TSDL
+SUV<-read.csv('monthly-sales-for-a-souvenir-sho.csv')
+suv<-ts(SUV$Sales)
+library(astsa)
+library(forecast)
+
+par(mfrow=c(2,2))
+plot(suv, main='Monthly sales for a souvenir shop', ylab='', col='blue', lwd=3)
+plot(log(suv), main='Log-transorm of sales', ylab='', col='red', lwd=3)
+plot(diff(log(suv)), main='Differenced Log-transorm of sales', ylab='', col='brown', lwd=3)
+plot(diff(diff(log(suv)),12), main='Log-transorm without trend and seasonaliy', ylab='', col='green', lwd=3)
+
+data <- diff(diff((log(suv)),12)) #data is log(suv), d=1, D=1
+acf2(data, 50) #max lag is 50
+#choose a model
+d=1
+DD=1
+per=12
+for(p in 1:2){
+  for(q in 1:2){
+    for(i in 1:2){
+      for(j in 1:4){
+        if(p+d+q+i+DD+j<=10){
+          model<-arima(x=log(suv), order = c((p-1),d,(q-1)), seasonal = list(order=c((i-1),DD,(j-1)), period=per))
+          pval<-Box.test(model$residuals, lag=log(length(model$residuals)))
+          sse<-sum(model$residuals^2)
+          cat(p-1,d,q-1,i-1,DD,j-1,per, 'AIC=', model$aic, ' SSE=',sse,' p-VALUE=', pval$p.value,'\n')
+        }
+      }
+    }
+  }
+}
+#We selected ARIMA(1,1,0;0,1,1)[12]
+model<- arima(x=log(suv), order = c(1,1,0), seasonal = list(order=c(0,1,1), period=12))
+plot(forecast(model))
+forecast(model)
+a <- sarima.for(log(suv),12,1,1,0,0,1,1,12)
+plot.ts(c(suv,exp(a$pred)), main='Monthly sales + Forecast', ylab='', col='blue', lwd=3)
+
+#Using USAccDeaths data
+library(astsa)
+model<-sarima(USAccDeaths, 0,1,1,0,1,1,12)
+# display p-value for the estimated coefficients
+model$ttable
+# do forecast
+fc <- sarima.for(USAccDeaths,12,0,1,1,0,1,1,12)
+fc$pred
+
+
+#Forecasting using simple exponential smoothing
+#London rainfall dataset
+rm(list=ls(all=TRUE))
+rain.data <- scan("http://robjhyndman.com/tsdldata/hurst/precip1.dat",skip=1)
+rain.ts <- ts(rain.data, start=c(1813))
+
+par(mfrow=c(1,2))
+hist(rain.data)
+qqnorm(rain.data)
+qqline(rain.data)
+plot(rain.ts)
+acf(rain.ts)
+
+#try to use auto.arima, but gives ARIMA(0,0,0)
+library(forecast)
+auto.arima(rain.ts)
+
+#DIY Simple SES
+alpha=.02412151 #increase alpha for more rapid decay
+forecast.values=NULL
+n=length(rain.data)
+forecast.values[1]=rain.data[1] #naive first forecast
+for(i in 1:n){
+    forecast.values[i+1]=alpha*rain.data[i] + (1-alpha)*forecast.values[i]
+}
+paste("forecast for time",n+1,"=",forecast.values[n+1])
+
+#DIY find optimal alpha for SES
+SSE=NULL
+n = length(rain.data)
+alpha.values = seq( .001, .999, by=0.001)
+number.alphas = length(alpha.values)
+for( k in 1:number.alphas ) {
+    forecast.values=NULL
+    alpha = alpha.values[k]
+    forecast.values[1] = rain.data[1]
+    for( i in 1:n ) {
+        forecast.values[i+1] = alpha*rain.data[i] + (1-alpha)*forecast.values[i]
+    }
+    SSE[k] = sum( (rain.data - forecast.values[1:n])^2 )
+}
+plot(SSE~alpha.values, main="Optimal alpha value Minimizes SSE")
+index.of.smallest.SSE = which.min(SSE) #returns position 24
+alpha.values[which.min(SSE)] #returns 0.024
+
+#Holt-Winters exponential smoothing to determine alpha
+HoltWinters(rain.ts, beta=FALSE, gamma=FALSE)
+
+
+#The Value of Money data set
+rm(list=ls(all=TRUE)) #remove all variables
+money.data = read.table("filename")
+money.data.ts=ts(money.data[,2], start=c(1960,2), frequency=12) #start feb 1960, attach 1960 to 2nd data point
+par(mfrow=c(3,1))
+plot(money.data.ts)
+acf(
+pacf(
+
+#DIY Double exponential smoothing
+#set up our transformed data and smoothing parameters
+data = money.data[,2]
+N = length(data)
+alpha = 0.7; beta = 0.5;
+
+##prepare empty arrays so we can store values
+forecast = NULL
+level = NULL
+trend = NULL
+
+#initialize level and trend in a very simple way
+level[1] = data [1]
+trend[1] = data [2] - data [1]
+
+#initialize forecast to get started
+forecast[1] = data [1]
+forecast[2] = data [2]
+
+#loop to build forecasts
+for( n in 2:N ) {
+    level[n] = alpha*data [n] + (1-alpha)*(level[n-1]+trend[n-1])
+    trend[n] = beta*(level[n] - level[n-1]) + (1-beta)*trend[n-1]
+    forecast[n+1] = level[n] + trend[n]
+}
+#display your calculated forecast values
+forecast[3:N]
+
+#Use Holt-Winters can instead find optima alpha and beta
+m=HoltWinters(data, gamma = FALSE)
+
+
+#Air Passenger data, triple exponential smoothing
+AirPassengers.hw <- HoltWinters(log10(AirPassengers))
+#gives optimal alpha, beta, gamma: 
+AirPassengers.hw$alpha
+AirPassengers.hw$beta
+AirPassengers.hw$gamma
+#gives levels, trends, and seasonalities:
+AirPassengers.hw$coefficients
+
+#do forecasts (point forecasts, with interval estimates with 80%-95% confidence)
+rm(list=ls(all=TRUE)) #remove all variables
+library("forecast")
+AirPassengers.forecast <- forecast.HoltWinters(AirPassengers.hw)
+
