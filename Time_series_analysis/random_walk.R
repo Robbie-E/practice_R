@@ -12,7 +12,6 @@ random_walk = ts(x)
 
 #2rows, 1col
 par(mfrow=c(2,1))
-
 plot(random_walk)
 acf(random_walk)
 
