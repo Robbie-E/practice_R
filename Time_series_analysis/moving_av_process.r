@@ -32,7 +32,7 @@ for (i in 1:(n-q)){
 #  ma_q[(i-(q-1))]=as.numeric(t(matrix(weights))%*%(matrix(noise[i:i-q])))
 #}
 
-moving_average_process=ts(ma_q[(q+1):n])
+moving_average_process=ts(ma_q[1:n])
 
 #2rows, 1col
 par(mfrow=c(2,1)) 
