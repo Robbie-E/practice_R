@@ -1,7 +1,5 @@
 yule_walker <- function(dframe, p=1){
-  #setwd("~/R Scripts")
-  #dframe <- ts(read.csv(data))
-
+  # Estimate parameters for an AR(p) process
   # subtract mean to get a time series with mean zero
   ar.process = dframe - mean(dframe)
   
