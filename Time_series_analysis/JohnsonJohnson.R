@@ -20,7 +20,7 @@ var = yule_walker(diff(log(JohnsonJohnson)), p=4)$var
 cons = yule_walker(diff(log(JohnsonJohnson)), p=4)$cons
 
 # r[t] = cons + phi (dot) r[t-1, ..., t-4] + Z[t]
-#Z[t] ~ N(0,var)
+# Z[t] ~ N(0,var)
 #> phi
 #           [,1]
 #[1,] -0.6293492

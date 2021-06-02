@@ -11,6 +11,9 @@ pacf(rec)
 phi = yule_walker(rec, p=2)$phi
 var = yule_walker(rec, p=2)$var
 cons = yule_walker(rec, p=2)$cons
+
+# X[t] = cons + phi (dot) X[t-1, t-2] + Z[t]
+# Z[t] ~ N(0,var)
 #> phi
 #             [,1]
 #  [1,]  1.3315874
